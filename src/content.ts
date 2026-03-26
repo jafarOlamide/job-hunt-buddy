@@ -119,7 +119,6 @@ function findLargestTextBlock(): string {
 
 browser.runtime.onMessage.addListener((message: BrowserRuntimeMessage, sender, sendResponse) => {
   if (message.type === "SCRAPE_REQUEST") {
-    console.log("📋 Content script: Received scrape request!");
 
     const platform = detectPlatform();
 
@@ -127,8 +126,6 @@ browser.runtime.onMessage.addListener((message: BrowserRuntimeMessage, sender, s
     const title = scrapeTitle(platform);
     const description = scrapeDescription(platform);
     const url = window.location.href;
-
-    console.log("✅ Scraped data:", { title: title.substring(0, 50), url, description });
 
     sendResponse({
       type: "SCRAPE_RESULT",

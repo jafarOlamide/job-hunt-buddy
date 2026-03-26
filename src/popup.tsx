@@ -1,50 +1,57 @@
-import { useEffect, useState } from "react";
-import browser from "webextension-polyfill";
-import type { BrowserRuntimeResponse, JobApplication } from "./lib/types";
-import "./style.css";
+import { useEffect, useState } from "react"
+import browser from "webextension-polyfill"
 
+import type { BrowserRuntimeResponse, JobApplication } from "./lib/types"
+
+import "./style.css"
 
 function IndexPopup() {
-  const [jobs, setJobs] = useState<JobApplication[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
+  const [jobs, setJobs] = useState<JobApplication[]>([])
+  const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState<{
+    text: string
+    type: "success" | "error"
+  } | null>(null)
 
   useEffect(() => {
-    loadJobs();
-  }, []);
+    loadJobs()
+  }, [])
 
   const loadJobs = async () => {
     try {
-      const response: BrowserRuntimeResponse = await browser.runtime.sendMessage({ type: "GET_JOBS" });
-      console.log(jobs)
-      setJobs(response.jobs || []);
+      const response: BrowserRuntimeResponse =
+        await browser.runtime.sendMessage({ type: "GET_JOBS" })
+      setJobs(response.jobs || [])
     } catch (error) {
-      console.error("Failed to load jobs:", error);
+      console.error("Failed to load jobs:", error)
     }
-  };
+  }
 
   const handleSaveJob = async () => {
-    setLoading(true);
-    setMessage(null);
+    setLoading(true)
+    setMessage(null)
 
     try {
-      const response: BrowserRuntimeResponse  = await browser.runtime.sendMessage({ type: "SCRAPE_REQUEST" });
+      const response: BrowserRuntimeResponse =
+        await browser.runtime.sendMessage({ type: "SCRAPE_REQUEST" })
 
       if (response.success) {
-        setMessage({ text: "✅ Job saved successfully!", type: "success" });
-        await loadJobs();
+        setMessage({ text: "✅ Job saved successfully!", type: "success" })
+        await loadJobs()
       } else {
-        console.log('error response!!',response)
-        setMessage({ text: `${response.error || 'Failed to save job'}`, type: "error" });
+        setMessage({
+          text: `${response.error || "Failed to save job"}`,
+          type: "error"
+        })
       }
     } catch (error) {
-      console.error("Error saving job:", error);
-      setMessage({ text: "❌ Error: " + String(error), type: "error" });
+      console.error("Error saving job:", error)
+      setMessage({ text: "❌ Error: " + String(error), type: "error" })
     } finally {
-      setLoading(false);
-      setTimeout(() => setMessage(null), 3000);
+      setLoading(false)
+      setTimeout(() => setMessage(null), 3000)
     }
-  };
+  }
 
   const handleMarkAsApplied = async (jobId: string) => {
     try {
@@ -57,7 +64,7 @@ function IndexPopup() {
             appliedAt: new Date().toISOString()
           }
         }
-      });
+      })
 
       setJobs((prev) =>
         prev.map((job) =>
@@ -65,43 +72,45 @@ function IndexPopup() {
             ? { ...job, status: "applied", appliedAt: new Date().toISOString() }
             : job
         )
-      );
+      )
 
-      setMessage({ text: "✅ Marked as applied!", type: "success" });
-      setTimeout(() => setMessage(null), 2000);
+      setMessage({ text: "✅ Marked as applied!", type: "success" })
+      setTimeout(() => setMessage(null), 2000)
     } catch (error) {
-      console.error("Error updating job:", error);
+      console.error("Error updating job:", error)
     }
-  };
+  }
 
   const handleDeleteJob = async (jobId: string) => {
-    if (!confirm("Are you sure you want to delete this job?")) return;
+    if (!confirm("Are you sure you want to delete this job?")) return
 
     try {
       await browser.runtime.sendMessage({
         type: "DELETE_JOB",
         payload: { id: jobId }
-      });
+      })
 
-      setJobs((prev) => prev.filter((job) => job.id !== jobId));
+      setJobs((prev) => prev.filter((job) => job.id !== jobId))
 
-      setMessage({ text: "🗑️ Job deleted", type: "success" });
-      setTimeout(() => setMessage(null), 2000);
+      setMessage({ text: "🗑️ Job deleted", type: "success" })
+      setTimeout(() => setMessage(null), 2000)
     } catch (error) {
-      console.error("Error deleting job:", error);
+      console.error("Error deleting job:", error)
     }
-  };
+  }
 
   const handleOpenJob = (url: string) => {
-    browser.tabs.create({ url });
-  };
-
+    browser.tabs.create({ url })
+  }
 
   const formatDate = (isoString: string): string => {
-    const date = new Date(isoString);
-    return date.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
-  };
-
+    const date = new Date(isoString)
+    return date.toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "short",
+      year: "numeric"
+    })
+  }
 
   return (
     <div className="w-[400px] h-[600px] bg-gray-50 flex flex-col">
@@ -114,8 +123,7 @@ function IndexPopup() {
         <button
           onClick={handleSaveJob}
           disabled={loading}
-          className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
-        >
+          className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2">
           {loading ? (
             <>
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -136,8 +144,7 @@ function IndexPopup() {
             message.type === "success"
               ? "bg-green-100 text-green-800 border border-green-200"
               : "bg-red-100 text-red-800 border border-red-200"
-          }`}
-        >
+          }`}>
           {message.text}
         </div>
       )}
@@ -147,16 +154,20 @@ function IndexPopup() {
           <div className="text-center text-gray-500 mt-12">
             <p className="text-4xl mb-2">📋</p>
             <p className="text-sm">No saved jobs yet</p>
-            <p className="text-xs text-gray-400 mt-1">Visit a job page and click "Save This Job"</p>
+            <p className="text-xs text-gray-400 mt-1">
+              Visit a job page and click "Save This Job"
+            </p>
           </div>
         ) : (
           jobs
-            .sort((a, b) => new Date(b.savedAt).getTime() - new Date(a.savedAt).getTime())
+            .sort(
+              (a, b) =>
+                new Date(b.savedAt).getTime() - new Date(a.savedAt).getTime()
+            )
             .map((job) => (
               <div
                 key={job.id}
-                className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow duration-200"
-              >
+                className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow duration-200">
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <h3 className="font-semibold text-gray-900 line-clamp-2 flex-1">
                     {job.title || "Untitled Job"}
@@ -165,14 +176,12 @@ function IndexPopup() {
                   <button
                     onClick={() => handleOpenJob(job.url)}
                     className="text-blue-600 hover:text-blue-800 flex-shrink-0"
-                    title="Open job posting"
-                  >
+                    title="Open job posting">
                     <svg
                       className="w-5 h-5"
                       fill="none"
                       stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
+                      viewBox="0 0 24 24">
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -189,8 +198,7 @@ function IndexPopup() {
                       job.status === "applied"
                         ? "bg-green-100 text-green-800"
                         : "bg-gray-100 text-gray-800"
-                    }`}
-                  >
+                    }`}>
                     {job.status === "applied" ? "Applied" : "Saved"}
                   </span>
                 </div>
@@ -204,15 +212,13 @@ function IndexPopup() {
                   {job.status === "saved" && (
                     <button
                       onClick={() => handleMarkAsApplied(job.id)}
-                      className="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm font-medium py-2 px-3 rounded transition-colors duration-200"
-                    >
+                      className="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm font-medium py-2 px-3 rounded transition-colors duration-200">
                       Mark as Applied
                     </button>
                   )}
                   <button
                     onClick={() => handleDeleteJob(job.id)}
-                    className="bg-red-600 hover:bg-red-700 text-white text-sm font-medium py-2 px-3 rounded transition-colors duration-200"
-                  >
+                    className="bg-red-600 hover:bg-red-700 text-white text-sm font-medium py-2 px-3 rounded transition-colors duration-200">
                     Delete
                   </button>
                 </div>
@@ -221,8 +227,7 @@ function IndexPopup() {
         )}
       </div>
     </div>
-  );
+  )
 }
 
-export default IndexPopup;
-
+export default IndexPopup

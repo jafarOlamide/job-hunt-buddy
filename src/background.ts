@@ -2,9 +2,8 @@ import browser from "webextension-polyfill";
 import { v4 as uuidv4 } from "uuid";
 import { saveJob, updateJob, deleteJob, getJobs } from "./lib/storage";
 import type { BrowserRuntimeMessage, BrowserTabSendMessage, JobApplication } from "./lib/types";
+import { ErrorCodes, ExtensionError } from "./lib/errors";
 
-
-console.log("🎯 Background service worker started!");
 
 browser.runtime.onMessage.addListener((message: BrowserRuntimeMessage, sender, sendResponse) => {
   (async () => {
@@ -14,9 +13,7 @@ browser.runtime.onMessage.addListener((message: BrowserRuntimeMessage, sender, s
         const [activeTab] = await browser.tabs.query({ active: true, currentWindow: true });
 
         if (!activeTab.id) {
-          console.error("No active tab found");
-          sendResponse({ success: false, error: "No active tab found" });
-          return;
+          throw new ExtensionError("No active tab found", ErrorCodes.NO_ACTIVE_TAB)
         }
 
         const response: BrowserTabSendMessage = await browser.tabs.sendMessage(activeTab.id, {
@@ -31,9 +28,7 @@ browser.runtime.onMessage.addListener((message: BrowserRuntimeMessage, sender, s
           const urlExists = existingJobs.find((job) => job.url === url);
 
           if (urlExists) {
-            console.error("Duplicate jobs saved");
-            sendResponse({ success: false, error: "You already saved this job" });
-            return;
+            throw new ExtensionError("You already saved this job", ErrorCodes.DUPLICATE_JOB)
           }
 
           // Create a new job application object
@@ -53,7 +48,6 @@ browser.runtime.onMessage.addListener((message: BrowserRuntimeMessage, sender, s
           return;
         }
       } catch (error) {
-        console.error("Error during scrape:", error);
         sendResponse({ success: false, error: String(error) });
         return;
       }
