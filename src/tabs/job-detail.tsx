@@ -183,7 +183,7 @@ function JobDetailPage() {
                   ? "bg-green-100 text-green-800"
                   : "bg-gray-100 text-gray-800"
               }`}>
-              {job.status === "applied" ? " Applied" : "Saved"}
+              {job.status === "applied" ? "Applied" : "Saved"}
             </span>
           </div>
 
