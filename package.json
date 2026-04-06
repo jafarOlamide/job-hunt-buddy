@@ -1,8 +1,8 @@
 {
-  "name": "my-job-tracker",
-  "displayName": "My job tracker",
+  "name": "job-hunt-buddy",
+  "displayName": "Job Hunt Buddy",
   "version": "0.0.1",
-  "description": "A simple extension to aid your job search.",
+  "description": "A simple browser extension that helps you keep track of your job applications.",
   "author": "jafarOlamide",
   "scripts": {
     "dev": "plasmo dev",
@@ -34,8 +34,7 @@
   "manifest": {
     "permissions": [
       "storage",
-      "activeTab",
-      "scripting"
+      "activeTab"
     ],
     "host_permissions": [
       "<all_urls>"

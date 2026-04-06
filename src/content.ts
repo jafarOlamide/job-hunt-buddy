@@ -1,11 +1,6 @@
 import browser from "webextension-polyfill";
 import type { BrowserRuntimeMessage, Platform } from "./lib/types";
 
-/*
-* Detect job platform
-*/
-
-
 function detectPlatform(): Platform {
   const url = window.location.href;
 
@@ -99,6 +94,26 @@ function scrapeDescription(platform: Platform): string {
   return description.trim();
 }
 
+function isJobPage(platform: Platform): boolean {
+  if (platform !== "generic") return true;
+
+  const url = window.location.href.toLowerCase();
+  const pageText = document.body.innerText.toLowerCase();
+
+  const urlJobKeywords = ["job", "career", "opening", "position", "apply", "hiring", "vacancy", "recruitment"];
+  const contentJobKeywords = [
+    "responsibilities", "qualifications", "requirements",
+    "apply now", "job description", "about the role",
+    "we are looking for", "we're looking for",
+    "compensation", "salary", "years of experience"
+  ];
+
+  const urlMatch = urlJobKeywords.some((kw) => url.includes(kw));
+  const contentMatchCount = contentJobKeywords.filter((kw) => pageText.includes(kw)).length;
+
+  return urlMatch || contentMatchCount >= 2;
+}
+
 function findLargestTextBlock(): string {
   const divs = Array.from(document.querySelectorAll("div"));
 
@@ -132,7 +147,8 @@ browser.runtime.onMessage.addListener((message: BrowserRuntimeMessage, sender, s
       payload: {
         url,
         title,
-        description
+        description,
+        isJobPage: isJobPage(platform)
       }
     });
 

@@ -19,8 +19,10 @@ function IndexPopup() {
   return (
     <div className="w-[400px] h-[600px] bg-gray-50 flex flex-col">
       <div className="bg-blue-600 text-white p-4 shadow-md">
-        <h1 className="text-xl font-bold">Job Tracker</h1>
-        <p className="text-sm text-blue-100">Track your job applications</p>
+        <h1 className="text-xl font-bold">Job Hunt Buddy</h1>
+        <p className="text-sm text-blue-100">
+          Easily visualise your job hunting
+        </p>
       </div>
 
       <div className="p-4 bg-white border-b border-gray-200">
