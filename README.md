@@ -1,6 +1,6 @@
-# Job Tracker Browser Extension
+# Job Hunting Browser Extension
 
-A simple, lightweight browser extension to track your job applications. Save job postings with one click and manage your application status across multiple job platforms.
+A simple, lightweight browser extension to aid your job hunt journey. Save job postings with one click and manage your application status across multiple job platforms.
 
 ## Features
 

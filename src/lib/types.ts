@@ -36,6 +36,7 @@ export interface BrowserTabSendMessage {
     payload: {
         url: string;
         title: string;
-        description: string
+        description: string;
+        isJobPage: boolean;
     };
 }
