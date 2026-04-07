@@ -49,41 +49,41 @@ function scrapeDescription(platform: Platform): string {
   let description = "";
 
   switch (platform) {
-    case "linkedin":
-      // LinkedIn puts descriptions in a special div with id
+    case "linkedin": {
       const linkedInDesc = document.querySelector("#job-details");
-      description = linkedInDesc?.textContent || "";
+      description = linkedInDesc ? cleanHTML(linkedInDesc) : "";
       break;
+    }
 
-    case "greenhouse":
-      // Greenhouse uses class name job__description
+    case "greenhouse": {
       const ghContent = document.querySelector("div.job__description");
-      description = ghContent?.textContent || "";
+      description = ghContent ? cleanHTML(ghContent) : "";
       break;
+    }
 
-    case "lever":
-      // Lever uses name job-description in data-qa attribute
+    case "lever": {
       const leverSection = document.querySelector('[data-qa="job-description"]');
-      description = leverSection?.textContent || "";
+      description = leverSection ? cleanHTML(leverSection) : "";
       break;
+    }
 
-    case "workday":
-      // Workday uses name jobPostingDescription in data-automation-id attribute
+    case "workday": {
       const workdayContent = document.querySelector('[data-automation-id="jobPostingDescription"]');
-      description = workdayContent?.textContent || "";
+      description = workdayContent ? cleanHTML(workdayContent) : "";
       break;
+    }
 
-    case "workable":
-      // Workable uses name job-description in data-ui attribute
+    case "workable": {
       const workableDesc = document.querySelector('[data-ui="job-description"]');
-      description = workableDesc?.textContent || "";
+      description = workableDesc ? cleanHTML(workableDesc) : "";
       break;
+    }
 
-    case "ashby":
-      // Ashby uses a dynamic class name starting with "_descriptionText_"
+    case "ashby": {
       const ashbyDesc = document.querySelector('[class*="_descriptionText"]');
-      description = ashbyDesc?.textContent || "";
+      description = ashbyDesc ? cleanHTML(ashbyDesc) : "";
       break;
+    }
 
     case "generic":
       // For unknown sites, find the biggest text block
@@ -114,6 +114,31 @@ function isJobPage(platform: Platform): boolean {
   return urlMatch || contentMatchCount >= 2;
 }
 
+function cleanHTML(element: Element): string {
+  const clone = element.cloneNode(true) as Element;
+
+  const unwanted = [
+    "script", "style", "button", "input", "textarea", "select", "form",
+    "nav", "header", "footer", "iframe", "img", "svg", "video", "audio",
+    "noscript", "link", "meta", "picture", "canvas"
+  ];
+  unwanted.forEach((tag) => clone.querySelectorAll(tag).forEach((el) => el.remove()));
+
+  clone.querySelectorAll("*").forEach((el) => {
+    const href = el.tagName === "A" ? el.getAttribute("href") : null;
+    while (el.attributes.length > 0) {
+      el.removeAttribute(el.attributes[0].name);
+    }
+    if (href) {
+      el.setAttribute("href", href);
+      el.setAttribute("target", "_blank");
+      el.setAttribute("rel", "noopener noreferrer");
+    }
+  });
+
+  return clone.innerHTML.replace(/(\s*\n\s*){3,}/g, "\n\n").trim();
+}
+
 function findLargestTextBlock(): string {
   const divs = Array.from(document.querySelectorAll("div"));
 
@@ -121,6 +146,7 @@ function findLargestTextBlock(): string {
   let maxLength = 0;
 
   for (const div of divs) {
+    if (div === document.body || div.contains(document.body)) continue;
     const textLength = div.textContent?.length || 0;
     if (textLength > maxLength) {
       maxLength = textLength;
@@ -128,7 +154,7 @@ function findLargestTextBlock(): string {
     }
   }
 
-  return largestDiv?.textContent?.trim() || "";
+  return largestDiv ? cleanHTML(largestDiv) : "";
 }
 
 

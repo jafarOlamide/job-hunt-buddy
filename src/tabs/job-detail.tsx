@@ -229,11 +229,26 @@ function JobDetailPage() {
           <h2 className="text-xl font-bold text-gray-900 mb-4">
             Job Description
           </h2>
-          <div className="prose prose-sm max-w-none">
-            <div className="whitespace-pre-wrap text-gray-700 leading-relaxed break-words overflow-wrap-anywhere">
-              {job.description || "No description available"}
-            </div>
-          </div>
+          {job.description ? (
+            <div
+              className="prose prose-sm max-w-none text-gray-700 leading-relaxed
+                [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:mt-6 [&_h1]:mb-3
+                [&_h2]:text-xl [&_h2]:font-bold [&_h2]:mt-5 [&_h2]:mb-2
+                [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:mt-4 [&_h3]:mb-2
+                [&_h4]:text-base [&_h4]:font-semibold [&_h4]:mt-3 [&_h4]:mb-1
+                [&_p]:mb-3 [&_p]:leading-relaxed
+                [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:mb-3 [&_ul]:space-y-1
+                [&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:mb-3 [&_ol]:space-y-1
+                [&_li]:leading-relaxed
+                [&_strong]:font-semibold
+                [&_em]:italic
+                [&_a]:text-blue-600 [&_a]:underline hover:[&_a]:text-blue-800
+                [&_br]:block"
+              dangerouslySetInnerHTML={{ __html: job.description }}
+            />
+          ) : (
+            <p className="text-gray-500 italic">No description available</p>
+          )}
         </div>
 
         {/* Job URL Section */}

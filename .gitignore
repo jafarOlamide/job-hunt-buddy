@@ -30,4 +30,7 @@ dist/
 .plasmo
 
 # typescript
-.tsbuildinfo
+*.tsbuildinfo
+
+spec.md
+spec-v1.md
