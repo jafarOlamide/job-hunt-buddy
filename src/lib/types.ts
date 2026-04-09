@@ -6,6 +6,7 @@ export interface JobApplication {
     id: string;
     url: string;
     title: string;
+    company: string;
     description: string;
     status: ApplicationStatus;
     savedAt: string;
@@ -36,6 +37,7 @@ export interface BrowserTabSendMessage {
     payload: {
         url: string;
         title: string;
+        company: string;
         description: string;
         isJobPage: boolean;
     };

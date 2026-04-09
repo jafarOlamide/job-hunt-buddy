@@ -174,9 +174,14 @@ function JobDetailPage() {
         {/* Title Section */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
           <div className="flex items-start justify-between gap-4 mb-4">
-            <h1 className="text-3xl font-bold text-gray-900 flex-1">
-              {job.title}
-            </h1>
+            <div className="flex-1">
+              <h1 className="text-3xl font-bold text-gray-900">
+                {job.title}
+              </h1>
+              {job.company && (
+                <p className="text-lg text-gray-600 font-medium mt-1">{job.company}</p>
+              )}
+            </div>
             <span
               className={`px-3 py-1 text-sm font-medium rounded-full whitespace-nowrap ${
                 job.status === "applied"

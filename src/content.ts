@@ -94,6 +94,90 @@ function scrapeDescription(platform: Platform): string {
   return description.trim();
 }
 
+function formatSlug(slug: string): string {
+  return slug
+    .replace(/[-_]/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase())
+    .trim();
+}
+
+function scrapeCompany(platform: Platform): string {
+  const url = window.location.href;
+
+  switch (platform) {
+    case "ashby": {
+      // URL: jobs.ashbyhq.com/{company}/job-id
+      const slug = new URL(url).pathname.split("/").filter(Boolean)[0] || "";
+      if (slug) return formatSlug(slug);
+      // fallback: nav logo alt text
+      const logo = document.querySelector('a[class*="_navLogoLink"] img');
+      return logo?.getAttribute("alt")?.trim() || "";
+    }
+
+    case "greenhouse": {
+      // URL: job-boards.greenhouse.io/{company}/jobs/id
+      const slug = new URL(url).pathname.split("/").filter(Boolean)[0] || "";
+      if (slug) return formatSlug(slug);
+      // fallback: logo alt text
+      const logo = document.querySelector("a.logo img");
+      return logo?.getAttribute("alt")?.trim() || "";
+    }
+
+    case "lever": {
+      // URL: jobs.lever.co/{company}/job-id
+      const slug = new URL(url).pathname.split("/").filter(Boolean)[0] || "";
+      return formatSlug(slug);
+    }
+
+    case "workday": {
+      // URL: {company}.wd3.myworkdayjobs.com
+      const slug = new URL(url).hostname.split(".")[0] || "";
+      return formatSlug(slug);
+    }
+
+    case "workable": {
+      // URL: apply.workable.com/{company}/...
+      const slug = new URL(url).pathname.split("/").filter(Boolean)[0] || "";
+      return formatSlug(slug);
+    }
+
+    case "linkedin": {
+      const el = document.querySelector(
+        ".job-details-jobs-unified-top-card__company-name a, .jobs-unified-top-card__company-name a"
+      );
+      return el?.textContent?.trim() || "";
+    }
+
+    case "generic": {
+      // 1. og:site_name
+      const ogSiteName = document
+        .querySelector('meta[property="og:site_name"]')
+        ?.getAttribute("content")
+        ?.trim();
+      if (ogSiteName) return ogSiteName;
+
+      // 2. JSON-LD hiringOrganization
+      for (const script of Array.from(document.querySelectorAll('script[type="application/ld+json"]'))) {
+        try {
+          const data = JSON.parse(script.textContent || "");
+          const name =
+            data?.hiringOrganization?.name ||
+            (Array.isArray(data?.["@graph"]) &&
+              data["@graph"].find((n: { hiringOrganization?: { name?: string } }) => n.hiringOrganization)
+                ?.hiringOrganization?.name);
+          if (name) return String(name).trim();
+        } catch {
+          // malformed JSON-LD, skip
+        }
+      }
+
+      // 3. Hostname fallback
+      const hostname = new URL(url).hostname.replace(/^www\./, "");
+      return formatSlug(hostname.split(".")[0] || "");
+    }
+  }
+}
+
 function isJobPage(platform: Platform): boolean {
   if (platform !== "generic") return true;
 
@@ -163,16 +247,17 @@ browser.runtime.onMessage.addListener((message: BrowserRuntimeMessage, sender, s
 
     const platform = detectPlatform();
 
-    // Grab the title and description
-    const title = scrapeTitle(platform);
-    const description = scrapeDescription(platform);
     const url = window.location.href;
+    const title = scrapeTitle(platform);
+    const company = scrapeCompany(platform);
+    const description = scrapeDescription(platform);
 
     sendResponse({
       type: "SCRAPE_RESULT",
       payload: {
         url,
         title,
+        company,
         description,
         isJobPage: isJobPage(platform)
       }

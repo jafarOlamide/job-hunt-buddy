@@ -51,6 +51,11 @@ export function JobCard({
         </button>
       </div>
 
+      {/* Company */}
+      {job.company && (
+        <p className="text-sm text-gray-600 font-medium mb-2">{job.company}</p>
+      )}
+
       {/* Status Badge */}
       <div className="flex items-center gap-2 mb-2">
         <span
