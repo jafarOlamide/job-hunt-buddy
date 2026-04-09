@@ -21,7 +21,7 @@ browser.runtime.onMessage.addListener((message: BrowserRuntimeMessage, sender, s
         });
 
         if (response.type === "SCRAPE_RESULT") {
-          const { url, title, description, isJobPage } = response.payload;
+          const { url, title, company, description, isJobPage } = response.payload;
 
           if (!isJobPage) {
             throw new ExtensionError("This doesn't look like a job listing page", ErrorCodes.NOT_A_JOB_PAGE);
@@ -40,6 +40,7 @@ browser.runtime.onMessage.addListener((message: BrowserRuntimeMessage, sender, s
             id: uuidv4(),
             url,
             title,
+            company,
             description,
             status: "saved",
             savedAt: new Date().toISOString(),
