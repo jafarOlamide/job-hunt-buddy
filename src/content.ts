@@ -86,7 +86,6 @@ function scrapeDescription(platform: Platform): string {
     }
 
     case "generic":
-      // For unknown sites, find the biggest text block
       description = findLargestTextBlock();
       break;
   }
