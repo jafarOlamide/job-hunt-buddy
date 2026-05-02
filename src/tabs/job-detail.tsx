@@ -1,106 +1,29 @@
 import { useEffect, useState } from "react"
-import browser from "webextension-polyfill"
 
 import { Button } from "../components/Button"
-import type { BrowserRuntimeResponse, JobApplication } from "../lib/types"
 
 import "../style.css"
 
 import CloseIcon from "~src/components/Icons/CloseIcon"
+import { useJobs } from "~src/hooks/useJobs"
 import formatDate from "~src/utils/dateFormat"
 
 function JobDetailPage() {
-  const [job, setJob] = useState<JobApplication | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const {
+    job,
+    message,
+    loading,
+    loadJobDetails,
+    handleOpenJob,
+    handleMarkAsApplied,
+    contentViewhandleDeleteJob: handleDelete
+  } = useJobs()
 
   useEffect(() => {
-    loadJobDetails()
+    const params = new URLSearchParams(window.location.search)
+    const jobId = params.get("id")
+    loadJobDetails(jobId)
   }, [])
-
-  const loadJobDetails = async () => {
-    try {
-      const params = new URLSearchParams(window.location.search)
-      const jobId = params.get("id")
-
-      if (!jobId) {
-        setError("No job ID provided")
-        setLoading(false)
-        return
-      }
-
-      const response: BrowserRuntimeResponse =
-        await browser.runtime.sendMessage({
-          type: "GET_JOBS"
-        })
-
-      const allJobs = response.jobs || []
-      const foundJob = allJobs.find((j) => j.id === jobId)
-
-      if (!foundJob) {
-        setError("Job not found")
-      } else {
-        setJob(foundJob)
-      }
-    } catch (err) {
-      setError("Failed to load job details")
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleOpenUrl = () => {
-    if (job) {
-      browser.tabs.create({ url: job.url })
-    }
-  }
-
-  const handleMarkAsApplied = async () => {
-    if (!job) return
-
-    try {
-      await browser.runtime.sendMessage({
-        type: "UPDATE_JOB",
-        payload: {
-          id: job.id,
-          updates: {
-            status: "applied",
-            appliedAt: new Date().toISOString()
-          }
-        }
-      })
-
-      setJob((prev) =>
-        prev
-          ? {
-              ...prev,
-              status: "applied",
-              appliedAt: new Date().toISOString()
-            }
-          : null
-      )
-    } catch (err) {
-      alert("Failed to update job status")
-    }
-  }
-
-  const handleDelete = async () => {
-    if (!job) return
-    if (!confirm("Are you sure you want to delete this job?")) return
-
-    try {
-      await browser.runtime.sendMessage({
-        type: "DELETE_JOB",
-        payload: { id: job.id }
-      })
-
-      alert("Job deleted successfully")
-      window.close()
-    } catch (err) {
-      console.error("Failed to delete job:", err)
-      alert("Failed to delete job")
-    }
-  }
 
   const handleCloseTab = () => {
     window.close()
@@ -117,12 +40,12 @@ function JobDetailPage() {
     )
   }
 
-  if (error || !job) {
+  if (message?.type === "error" || !job) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="text-center max-w-md">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            {error || "Job not found"}
+            {message?.text || "Job not found"}
           </h1>
           <p className="text-gray-600 mb-6">
             The job you're looking for doesn't exist or has been deleted.
@@ -150,18 +73,24 @@ function JobDetailPage() {
             </button>
 
             <div className="flex gap-2">
-              <Button size="sm" variant="secondary" onClick={handleOpenUrl}>
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => handleOpenJob(job.url)}>
                 Open Original
               </Button>
               {job.status === "saved" && (
                 <Button
                   size="sm"
                   variant="success"
-                  onClick={handleMarkAsApplied}>
+                  onClick={() => handleMarkAsApplied(job.id)}>
                   Mark as Applied
                 </Button>
               )}
-              <Button size="sm" variant="danger" onClick={handleDelete}>
+              <Button
+                size="sm"
+                variant="danger"
+                onClick={() => handleDelete(job.id)}>
                 Delete
               </Button>
             </div>
@@ -175,11 +104,11 @@ function JobDetailPage() {
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
           <div className="flex items-start justify-between gap-4 mb-4">
             <div className="flex-1">
-              <h1 className="text-3xl font-bold text-gray-900">
-                {job.title}
-              </h1>
+              <h1 className="text-3xl font-bold text-gray-900">{job.title}</h1>
               {job.company && (
-                <p className="text-lg text-gray-600 font-medium mt-1">{job.company}</p>
+                <p className="text-lg text-gray-600 font-medium mt-1">
+                  {job.company}
+                </p>
               )}
             </div>
             <span
