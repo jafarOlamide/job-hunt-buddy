@@ -1,7 +1,7 @@
 {
   "name": "job-hunt-buddy",
   "displayName": "Job Hunt Buddy",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A simple browser extension that helps you keep track of your job applications.",
   "author": "jafarOlamide",
   "scripts": {
